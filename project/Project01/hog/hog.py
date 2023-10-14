@@ -176,6 +176,7 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
         while isMoreBoar:
             roll_num = getRstOfWhosStrategy(who)
             rst[who] += take_turn(roll_num, rst[nextP], dice, goal)
+            say = say(rst[0], rst[1])
             if check():
                 return rst
             if more_boar(rst[who], rst[nextP]) == False:
@@ -187,8 +188,9 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
     "*** YOUR CODE HERE ***"
+    # say = say(rst[0], rst[1])
     # END PROBLEM 6
-    return score0, score1
+    return score0, score1  # actually don't need
 
 
 #######################
@@ -271,6 +273,14 @@ def announce_highest(who, last_score=0, running_high=0):
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    def rtn_highest(*score, last_score=last_score, running_high=running_high):
+        diff = score[who] - last_score
+        if diff > running_high:
+            running_high = diff
+            print(f"Player {who} has reached a new maximum point gain. {running_high} point(s)!")
+        return announce_highest(who, score[who], running_high)
+
+    return rtn_highest
     # END PROBLEM 7
 
 
@@ -311,6 +321,13 @@ def make_averaged(original_function, trials_count=1000):
     """
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    def averaged_dice(*args):
+        sum = 0
+        for i in range(trials_count):
+            sum += original_function(*args)
+        return sum / trials_count
+    
+    return averaged_dice
     # END PROBLEM 8
 
 
@@ -325,6 +342,14 @@ def max_scoring_num_rolls(dice=six_sided, trials_count=1000):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    num_of_rolls = 0
+    highest_average_score = 0
+    for i in range(1, 11):
+        t = make_averaged(roll_dice, trials_count)(i, dice)
+        if t > highest_average_score:
+            highest_average_score = t
+            num_of_rolls = i
+    return num_of_rolls
     # END PROBLEM 9
 
 
@@ -365,7 +390,8 @@ def piggypoints_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     rolls NUM_ROLLS otherwise.
     """
     # BEGIN PROBLEM 10
-    return 6  # Replace this statement
+    # return 6  # Replace this statement
+    return 0 if piggy_points(opponent_score) >= cutoff else num_rolls
     # END PROBLEM 10
 
 
@@ -375,17 +401,40 @@ def more_boar_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     Otherwise, it rolls NUM_ROLLS.
     """
     # BEGIN PROBLEM 11
-    return 6  # Replace this statement
+    # return 6  # Replace this statement
+    p_point = piggy_points(opponent_score)
+
+    if more_boar(score+p_point, opponent_score):
+        return 0
+
+    if  p_point >= cutoff:
+        return 0
+
+    bonus = 0
+    while more_boar(score, opponent_score):
+        bonus += p_point
+        score += p_point
+
+    return 0 if bonus >= cutoff else num_rolls
     # END PROBLEM 11
 
 
 def final_strategy(score, opponent_score):
     """Write a brief description of your final strategy.
-
+    1-calculate the number of roll-time to take the average highist score, which set as the cutoff
+    2-when falling behind oppoent, should take more_boar_strategy
     *** YOUR DESCRIPTION HERE ***
     """
     # BEGIN PROBLEM 12
-    return 6  # Replace this statement
+    # return 6  # Replace this statement
+    cutoff_roll_num = 5  # max_scoring_num_rolls(dice = six_sided)
+    cutoff_score = 9.241  # make_averaged(roll_dice, 1000)(cutoff_roll_num, dice = six_sided)
+
+    if score >= opponent_score:
+        #if (GOAL_SCORE - score) <= 2 * cutoff_score:
+        return piggypoints_strategy(score, opponent_score, cutoff_score, cutoff_roll_num)
+    else:
+        return more_boar_strategy(score, opponent_score, cutoff_score, cutoff_roll_num)
     # END PROBLEM 12
 
 ##########################
